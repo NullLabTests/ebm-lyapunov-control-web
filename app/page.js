@@ -1,4 +1,4 @@
- 'use client'
+'use client';
 
 import { useRef, useEffect, useState } from 'react';
 
@@ -39,10 +39,10 @@ export default function Home() {
       ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Energy contours (concentric circles)
+      // Energy contours
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 1.5;
-      for (let r = 1; r < 13; r += 1) {
+      for (let r = 1; r < 13; r++) {
         ctx.globalAlpha = 0.15 + (r / 13) * 0.5;
         ctx.beginPath();
         ctx.arc(centerX, centerY, r * scale, 0, Math.PI * 2);
@@ -86,7 +86,7 @@ export default function Home() {
     };
 
     const drawParticles = () => {
-      particles.forEach((p) => {
+      particles.forEach(p => {
         // Trail
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 4;
@@ -115,10 +115,10 @@ export default function Home() {
     };
 
     const updateParticles = () => {
-      particles.forEach((p) => {
+      particles.forEach(p => {
         const gradX = 2 * p.x;
         const gradY = 2 * p.y;
-        p.x -= 0.12 * gradX;  // Euler step for dx/dt = -∇E
+        p.x -= 0.12 * gradX;   // dx/dt = -∇E
         p.y -= 0.12 * gradY;
         p.history.push({ x: p.x, y: p.y });
         if (p.history.length > 50) p.history.shift();
@@ -147,13 +147,12 @@ export default function Home() {
     const stopDemo = () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       setAnimating(false);
-      // Keep last frame visible
     };
 
-    // Initial static draw
+    // Initial draw
     drawBackground();
 
-    // Make functions global for button clicks
+    // Expose to window for buttons
     window.startDemo = startDemo;
     window.stopDemo = stopDemo;
 
@@ -167,11 +166,11 @@ export default function Home() {
       <div className="max-w-[900px] w-full">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-5xl font-bold tracking-tighter">EBM ė Lyapunov</h1>
+            <h1 className="text-5xl font-bold tracking-tighter">EBM → Lyapunov</h1>
             <p className="text-emerald-400 text-2xl">Live Control Theory Demo</p>
           </div>
-          <a href="https://github.com/NullLabTests/ebm-lyapunov-control-demo" target="_blank" className="text-xs px-4 py-2 bg-zinc-900 hover:bg-zinc-800 transition-colors rounded-2xl flex items-center gap-2">
-            ← Original Python Demo
+          <a href="https://github.com/NullLabTests/ebm-lyapunov-control-demo" target="_blank" className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 transition-colors rounded-2xl flex items-center gap-2">
+            ← Original Python Repo
           </a>
         </div>
 
@@ -190,14 +189,14 @@ export default function Home() {
             onClick={() => window.stopDemo && window.stopDemo()}
             className="px-10 py-5 bg-zinc-800 hover:bg-zinc-700 transition-all font-semibold text-lg rounded-3xl"
           >
-            ⏹️ Reset
+            ⏹ Reset
           </button>
         </div>
 
         <div className="mt-16 text-center max-w-md mx-auto text-zinc-400 text-sm leading-relaxed">
-          This is the exact energy minimization the r/ControlTheory thread was hyped about.<br/>
-          Pure deterministic stability via <span className="font-mono text-emerald-300">dx/dt = −∇E(x)</span>. No tokens. No probability.<br/>
-          <span className="text-xs mt-6 block">Deployed instantly on Vercel • Built in one bash script</span>
+          This is the exact energy minimization the r/ControlTheory thread was talking about.<br/>
+          Pure deterministic stability via <span className="font-mono text-emerald-300">dx/dt = -∇E(x)</span>.<br/>
+          No tokens. No probability. Just control theory in the browser.
         </div>
       </div>
     </main>
