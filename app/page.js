@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from 'react';
 export default function LyapunovDemo() {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -37,10 +37,11 @@ export default function LyapunovDemo() {
     };
 
     const draw = () => {
+      // Background
       ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Lyapunov energy contours
+      // Green Lyapunov energy contours
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 2;
       for (let r = 1; r <= 14; r++) {
@@ -71,12 +72,12 @@ export default function LyapunovDemo() {
       ctx.moveTo(cx, 30); ctx.lineTo(cx, canvas.height - 30);
       ctx.stroke();
 
-      // Particles + trails
+      // Rainbow particle trails + heads
       particles.forEach(p => {
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 3.5;
-        ctx.globalAlpha = 0.8;
-        ctx.shadowBlur = 15;
+        ctx.globalAlpha = 0.85;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = p.color;
         ctx.beginPath();
         p.history.forEach((pt, i) => {
@@ -89,7 +90,6 @@ export default function LyapunovDemo() {
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
 
-        // Particle head
         const px = cx + p.x * scale;
         const py = cy + p.y * scale;
         ctx.fillStyle = p.color;
@@ -103,10 +103,10 @@ export default function LyapunovDemo() {
       particles.forEach(p => {
         const gradX = 2 * p.x;
         const gradY = 2 * p.y;
-        p.x -= 0.09 * gradX;
-        p.y -= 0.09 * gradY;
+        p.x -= 0.065 * gradX;   // slower = more visible
+        p.y -= 0.065 * gradY;
         p.history.push({ x: p.x, y: p.y });
-        if (p.history.length > 60) p.history.shift();
+        if (p.history.length > 120) p.history.shift();   // much longer trails
 
         if (Math.hypot(p.x, p.y) < 0.2) {
           p.x = p.y = 0;
@@ -120,25 +120,9 @@ export default function LyapunovDemo() {
       rafId = requestAnimationFrame(animate);
     };
 
-    const startAnimation = () => {
-      if (isRunning) return;
-      initParticles();
-      setIsRunning(true);
-      animate();
-    };
-
-    const stopAnimation = () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      setIsRunning(false);
-      draw(); // keep last frame
-    };
-
-    // Initial draw
+    // Start everything
     initParticles();
-    draw();
-
-    // Auto-start on load
-    startAnimation();
+    animate();
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
@@ -162,22 +146,17 @@ export default function LyapunovDemo() {
 
         <div className="flex gap-6 justify-center mt-10">
           <button 
-            onClick={() => { /* restart */ }}
+            onClick={() => window.location.reload()}
             className="px-12 py-6 bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-2xl rounded-3xl shadow-xl transition-all active:scale-95 flex items-center gap-3"
           >
             ▶️ Restart Simulation
-          </button>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-10 py-6 bg-zinc-800 hover:bg-zinc-700 font-bold text-2xl rounded-3xl transition-all"
-          >
-            Reset
           </button>
         </div>
 
         <p className="text-center text-zinc-400 mt-12 text-sm max-w-md mx-auto">
           r/ControlTheory in the browser.<br/>
-          Pure deterministic stability: <span className="font-mono text-emerald-300">dx/dt = −∇E(x)</span>
+          Pure deterministic stability: <span className="font-mono text-emerald-300">dx/dt = −∇E(x)</span><br/>
+          Watch the rainbow trajectories converge to the stable point.
         </p>
       </div>
     </main>
