@@ -2,50 +2,49 @@
 
 import { useRef, useEffect, useState } from 'react';
 
-export default function Home() {
+export default function LyapunovDemo() {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  const [animating, setAnimating] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width = 800;
-    canvas.height = 600;
+    canvas.width = 820;
+    canvas.height = 620;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const centerX = 400;
-    const centerY = 300;
-    const scale = 30;
+    const cx = 410;
+    const cy = 310;
+    const scale = 28;
 
     let particles = [];
 
-    const initTrajectories = () => {
+    const initParticles = () => {
       particles = [];
-      for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        const dist = 8 + Math.random() * 4;
+      for (let i = 0; i < 9; i++) {
+        const angle = (i / 9) * Math.PI * 2;
+        const dist = 7 + Math.random() * 4;
         particles.push({
           x: Math.cos(angle) * dist,
           y: Math.sin(angle) * dist,
           history: [],
-          color: `hsl(${i * 40}, 90%, 60%)`
+          color: `hsl(${i * 35}, 95%, 65%)`
         });
       }
     };
 
-    const drawBackground = () => {
+    const draw = () => {
       ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Energy contours
+      // Lyapunov energy contours
       ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 1.5;
-      for (let r = 1; r < 13; r++) {
-        ctx.globalAlpha = 0.15 + (r / 13) * 0.5;
+      for (let r = 1; r <= 14; r++) {
+        ctx.globalAlpha = 0.1 + (r * 0.035);
         ctx.beginPath();
-        ctx.arc(centerX, centerY, r * scale, 0, Math.PI * 2);
+        ctx.arc(cx, cy, r * scale, 0, Math.PI * 2);
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
@@ -53,60 +52,43 @@ export default function Home() {
       // Grid
       ctx.strokeStyle = '#27272a';
       ctx.lineWidth = 1;
-      for (let x = -13; x <= 13; x++) {
+      for (let i = -15; i <= 15; i++) {
         ctx.beginPath();
-        ctx.moveTo(centerX + x * scale, 0);
-        ctx.lineTo(centerX + x * scale, canvas.height);
-        ctx.stroke();
-      }
-      for (let y = -9; y <= 9; y++) {
-        ctx.beginPath();
-        ctx.moveTo(0, centerY + y * scale);
-        ctx.lineTo(canvas.width, centerY + y * scale);
+        ctx.moveTo(cx + i * scale, 30);
+        ctx.lineTo(cx + i * scale, canvas.height - 30);
+        ctx.moveTo(30, cy + i * scale);
+        ctx.lineTo(canvas.width - 30, cy + i * scale);
         ctx.stroke();
       }
 
       // Axes
       ctx.strokeStyle = '#a1a1aa';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(50, centerY);
-      ctx.lineTo(canvas.width - 50, centerY);
-      ctx.moveTo(centerX, 50);
-      ctx.lineTo(centerX, canvas.height - 50);
+      ctx.moveTo(30, cy); ctx.lineTo(canvas.width - 30, cy);
+      ctx.moveTo(cx, 30); ctx.lineTo(cx, canvas.height - 30);
       ctx.stroke();
 
-      // Labels
-      ctx.fillStyle = '#a1a1aa';
-      ctx.font = '500 14px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('x₁', canvas.width - 30, centerY + 25);
-      ctx.fillText('x₂', centerX + 25, 35);
-      ctx.fillText('Energy Landscape E(x) = x₁² + x₂²', 400, 30);
-    };
-
-    const drawParticles = () => {
+      // Particles
       particles.forEach(p => {
-        // Trail
         ctx.strokeStyle = p.color;
-        ctx.lineWidth = 4;
-        ctx.globalAlpha = 0.7;
+        ctx.lineWidth = 3.5;
+        ctx.globalAlpha = 0.75;
         ctx.shadowBlur = 15;
         ctx.shadowColor = p.color;
         ctx.beginPath();
-        p.history.forEach((pt, idx) => {
-          const px = centerX + pt.x * scale;
-          const py = centerY + pt.y * scale;
-          if (idx === 0) ctx.moveTo(px, py);
+        p.history.forEach((pt, i) => {
+          const px = cx + pt.x * scale;
+          const py = cy + pt.y * scale;
+          if (i === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         });
         ctx.stroke();
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
 
-        // Current dot
-        const px = centerX + p.x * scale;
-        const py = centerY + p.y * scale;
+        const px = cx + p.x * scale;
+        const py = cy + p.y * scale;
         ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(px, py, 7, 0, Math.PI * 2);
@@ -114,90 +96,74 @@ export default function Home() {
       });
     };
 
-    const updateParticles = () => {
+    const update = () => {
       particles.forEach(p => {
         const gradX = 2 * p.x;
         const gradY = 2 * p.y;
-        p.x -= 0.12 * gradX;   // dx/dt = -∇E
-        p.y -= 0.12 * gradY;
+        p.x -= 0.09 * gradX;
+        p.y -= 0.09 * gradY;
         p.history.push({ x: p.x, y: p.y });
-        if (p.history.length > 50) p.history.shift();
+        if (p.history.length > 60) p.history.shift();
 
-        if (Math.hypot(p.x, p.y) < 0.15) {
-          p.x = 0;
-          p.y = 0;
+        if (Math.hypot(p.x, p.y) < 0.18) {
+          p.x = p.y = 0;
         }
       });
     };
 
-    const animateLoop = () => {
-      drawBackground();
-      drawParticles();
-      updateParticles();
-      animationRef.current = requestAnimationFrame(animateLoop);
+    const loop = () => {
+      draw();
+      update();
+      animationRef.current = requestAnimationFrame(loop);
     };
 
-    const startDemo = () => {
-      if (animating) return;
-      initTrajectories();
-      setAnimating(true);
-      animateLoop();
+    const start = () => {
+      if (isRunning) return;
+      initParticles();
+      setIsRunning(true);
+      loop();
     };
 
-    const stopDemo = () => {
+    const stop = () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      setAnimating(false);
+      setIsRunning(false);
+      draw();
     };
 
-    // Initial draw
-    drawBackground();
-
-    // Expose to window for buttons
-    window.startDemo = startDemo;
-    window.stopDemo = stopDemo;
+    draw();
+    window.startLyapunov = start;
+    window.stopLyapunov = stop;
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [animating]);
+  }, [isRunning]);
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
+    <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-8">
       <div className="max-w-[900px] w-full">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-5xl font-bold tracking-tighter">EBM → Lyapunov</h1>
-            <p className="text-emerald-400 text-2xl">Live Control Theory Demo</p>
-          </div>
-          <a href="https://github.com/NullLabTests/ebm-lyapunov-control-demo" target="_blank" className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 transition-colors rounded-2xl flex items-center gap-2">
-            ← Original Python Repo
-          </a>
+        <h1 className="text-6xl font-black tracking-tighter mb-2">EBM = Lyapunov</h1>
+        <p className="text-emerald-400 text-3xl mb-10">Live Control Theory Demo</p>
+
+        <div className="bg-zinc-900 rounded-3xl p-5 shadow-2xl border border-zinc-800">
+          <canvas ref={canvasRef} className="w-full rounded-2xl" width="820" height="620" />
         </div>
 
-        <div className="bg-zinc-900 rounded-3xl p-4 shadow-inner">
-          <canvas ref={canvasRef} className="w-full rounded-2xl" width="800" height="600" />
-        </div>
-
-        <div className="mt-8 flex justify-center gap-4">
-          <button 
-            onClick={() => window.startDemo && window.startDemo()}
-            className="px-10 py-5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all font-semibold text-lg text-black rounded-3xl flex items-center gap-3 shadow-lg"
-          >
-            ▶️ Start Gradient Flow Simulation
+        <div className="flex gap-6 justify-center mt-10">
+          <button onClick={() => window.startLyapunov && window.startLyapunov()}
+            className="px-12 py-6 bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-2xl rounded-3xl shadow-xl transition-all active:scale-95">
+            ▶️ Start Gradient Flow
           </button>
-          <button 
-            onClick={() => window.stopDemo && window.stopDemo()}
-            className="px-10 py-5 bg-zinc-800 hover:bg-zinc-700 transition-all font-semibold text-lg rounded-3xl"
-          >
-            ⏹ Reset
+          <button onClick={() => window.stopLyapunov && window.stopLyapunov()}
+            className="px-10 py-6 bg-zinc-800 hover:bg-zinc-700 font-bold text-2xl rounded-3xl transition-all">
+            Reset
           </button>
         </div>
 
-        <div className="mt-16 text-center max-w-md mx-auto text-zinc-400 text-sm leading-relaxed">
-          This is the exact energy minimization the r/ControlTheory thread was talking about.<br/>
-          Pure deterministic stability via <span className="font-mono text-emerald-300">dx/dt = -∇E(x)</span>.<br/>
-          No tokens. No probability. Just control theory in the browser.
-        </div>
+        <p className="text-center text-zinc-400 mt-12 text-sm max-w-md mx-auto">
+          r/ControlTheory in the browser.<br/>
+          Pure deterministic stability: <span className="font-mono text-emerald-300">dx/dt = −∇E(x)</span>
+        </p>
       </div>
     </main>
   );
